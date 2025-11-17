@@ -1,0 +1,29 @@
+const mongoose = require("mongoose"); 
+const dotenv = require("dotenv");
+
+dotenv.config();
+console.log(process.env.DB);
+
+async function dbCon() {
+  try {
+    await mongoose
+      .connect(
+        `mongodb+srv://sadaqat:${process.env.DB}@cluster0.g3mjkkw.mongodb.net/?appName=Cluster0`
+      )
+      .then(() => console.log("database connected"))
+      .catch((err) => console.log(`connection failed ${err}`));
+
+    mongoose.connection.on("connected", () =>
+      console.log("DATABASE SUCCESSFULLY CONNECTED...!")
+    );
+
+    mongoose.connection.on("disconnected", () =>
+      console.log("DATABASE CONNECTION TERMINATED...!")
+    );
+  } catch (err) {
+    console.log(err, "here is an error");
+  }
+}
+
+module.exports = dbCon;
+ 
