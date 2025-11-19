@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const userModel = require("../db/userSchema")
+const dotenv = require("dotenv");
 const saltRounds = 10;
-
-//UAEnJlzKmJEVeI9o      j$qK5f-bXgXfVMA     j$qK5f-bXgXfVMA
-// mongodb+srv://sadaqat:<db_password>@cluster0.g3mjkkw.mongodb.net/?appName=Cluster0
 
 async function signUp(req, res) {
 
@@ -21,6 +21,8 @@ async function signUp(req, res) {
                     role,
                 };
 
+
+                const result = new userModel(user).save();
                 res.send({
                     message: "Signup successfully  working with bcrypt!",
                     user,
@@ -37,41 +39,16 @@ async function signUp(req, res) {
     }
 }
 
-
-async function login(req, res) {
+async function login() {
     try{
+
         const { email, password } = req.body;
 
         if(!email || !password){
             return res.send({
                 status: 400,
-                message: "Email or password is missing",
-            });;
+            })
         }
-
-
-        const fakeUser = {
-            "email": "abc@gmail.com",
-            "passwword": "12345",
-        };
-
-        if(email===fakeUser.email && password===fakeUser.password){
-            return res.send({
-                status: 200,
-                message: "Login successful (simple version)",
-            });
-        }
-
-        return res.send({
-            status: 401,
-            message: "Invalid email or password"
-        });
-    }catch(err){
-        res.send({
-            err,
-            status: 500,
-            message: "Server error",       
-        })
     }
 }
 
