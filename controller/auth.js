@@ -39,51 +39,59 @@ async function signUp(req, res) {
     }
 }
 
+async function login(req, res) {
+    try {
+        const { email, password } = req.body;
 
-async function login(req, res,) {
-  // destructure
-  try {
-    const { email, password } = req.body;
+                if (!email || !password) {
+            return res.status(400).send({
+                status: 400,
+                message: "Email or password is missing"
+            });
+        }
 
-    const dbUser = await userModel.findOne({ email });
-    console.log(dbUser, "here is a user");
-
-    // Load hash from your password DB.
-    bcrypt.compare(password, dbUser.password, function (err, result) {
-      // result == true
-
-      if (result) {
-        console.log(process.env.JWTSECRETKEY, "process.env.JWTSECRETKEY");
-        let token = jwt.sign(
-          {
-            email: dbUser.email,
-            firstName: dbUser.firstName,
-            "last name": dbUser.lastName,
-            role: dbUser.role,
-          },
-          process.env.JWTSECRETKEY,
-          { expiresIn: "1d" }
+                const dbUser = await userModel.findOne({ email });
+                console.log(dbUser, "here is a user");
+        if (!dbUser) {
+            return res.status(401).send({
+                status: 401,
+                message: "User not found"
+            });
+        }
+                const isPasswordValid = await bcrypt.compare(password, dbUser.password);
+        if (!isPasswordValid) {
+            return res.status(401).send({
+                status: 401,
+                message: "Invalid password"
+            });
+        }
+            const token = jwt.sign(
+            {id: dbUser._id, email: dbUser.email, role: dbUser.role },
+            process.env.JWTSECRETKEY,
+            { expiresIn: "1d" }
         );
-        console.log(token);
-        res.cookie("jwtToken", token, {
-          httpOnly: true,
-          maxAge: "1d", // 1 day in milliseconds
-        });
-        res.send({
-          status: 200,
-          message: "user login successfully",
-          token,
-        });
-      }
-    });
-  } catch (err) {
-    res.send({
-      err,
-      status: 500,
-      message: "sorry! server is not responding",
-    });
-  }
-}
+          console.log(token);
 
+                res.cookie("jwtToken", token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000 // 1 day in milliseconds
+        });
+
+        res.send({
+            status: 200,
+            message: "Login successful",
+            token,
+            dbUser
+            
+        });
+
+            } catch (err) {
+        res.status(500).send({
+            status: 500,
+            message: "Server error",
+            error: err.message
+        });
+    }
+}
  
 module.exports = { signUp, login };
